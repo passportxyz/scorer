@@ -1,0 +1,3 @@
+name: scorer
+runtime: nodejs
+description: Scorer as a service for Gitcoin Passport
