@@ -176,6 +176,24 @@ const dpoppEcsRole = new aws.iam.Role("dpoppEcsRole", {
   }),
   inlinePolicies: [
     {
+      name: "allow_exec",
+      policy: JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Action: [
+              "ssmmessages:CreateControlChannel",
+              "ssmmessages:CreateDataChannel",
+              "ssmmessages:OpenControlChannel",
+              "ssmmessages:OpenDataChannel",
+            ],
+            Resource: "*",
+          },
+        ],
+      }),
+    },
+    {
       name: "allow_iam_secrets_access",
       policy: JSON.stringify({
         Version: "2012-10-17",
@@ -208,6 +226,16 @@ const service = new awsx.ecs.FargateService("scorer", {
         image: dockerGtcPassportIamImage,
         memory: 1024,
         portMappings: [httpsListener],
+        command: [
+          "gunicorn",
+          "-w",
+          "4",
+          "-k",
+          "uvicorn.workers.UvicornWorker",
+          "scorer.asgi:application",
+          "-b",
+          "0.0.0.0:80",
+        ],
         links: [],
         secrets: [
           {
@@ -226,9 +254,12 @@ const service = new awsx.ecs.FargateService("scorer", {
           },
           {
             name: "ALLOWED_HOSTS",
-            value: JSON.stringify(domain),
+            value: JSON.stringify([domain]),
           },
         ],
+        linuxParameters: {
+          initProcessEnabled: true,
+        },
       },
     },
   },
