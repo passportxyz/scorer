@@ -33,7 +33,7 @@ SECRET_KEY = env("SECRET_KEY", default="some-secret-value")
 DEBUG = env("DEBUG", default=True)
 
 ALLOWED_HOSTS = env.json("ALLOWED_HOSTS", default=[])
-
+CSRF_TRUSTED_ORIGINS = env.json("CSRF_TRUSTED_ORIGINS", default=[])
 
 # Application definition
 INSTALLED_APPS = [

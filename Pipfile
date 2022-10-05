@@ -17,6 +17,7 @@ pyyaml = "*"
 uritemplate = "*"
 django-cors-headers = "*"
 django-environ = "*"
+psycopg2 = "*"
 
 [dev-packages]
 black = "*"
