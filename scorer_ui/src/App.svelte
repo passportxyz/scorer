@@ -1,5 +1,6 @@
 <script lang="ts">
   import Wallet from "./lib/Wallet.svelte";
+  import Modal from './lib/Modal.svelte';
   import { address } from "./stores";
   import { PassportReader } from "@gitcoinco/passport-sdk-reader";
   import axios from "axios";
@@ -10,6 +11,8 @@
   let passportSubmissionState: string | null = null;
   let passport: any = null;
   let scores = [];
+  let showModal = false;
+  let scorerInfo:string = "";
 
   const unsubscribe = address.subscribe((value) => {
     currentAddress = value;
@@ -51,6 +54,7 @@
             passportSubmissionState = "Received updated scores";
             console.log(response.data);
             scores = response.data;
+            console.log("Scores: ", scores);
           })
           .catch(function (error) {
             passportSubmissionState = "Error while getting updated scores";
@@ -67,9 +71,35 @@
         // always executed
       });
   }
+
+  function getScorerInfo(scorerId) {
+    return function() {
+      axios
+          .get(`${import.meta.env.VITE_SCORER_API_ENDPOINT}scorer_weighted/api/scorer-weighted/${scorerId}/`)
+          .then(function (response) {
+            console.log(response.data);
+            scorerInfo = JSON.stringify(response.data, undefined, 2);
+            showModal = true;
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+    }
+  }
 </script>
 
 <main>
+  {#if showModal}
+	<Modal on:close="{() => showModal = false}">
+		<h2 slot="header">
+			Scorer
+		</h2>
+
+		<pre>{scorerInfo}</pre>
+
+	</Modal>
+{/if}
+
   <Wallet />
   You are connected with:
   <pre>{currentAddress}</pre>
@@ -91,7 +121,7 @@
       <ul>
         {#each scores as score}
           <li>
-            {score.passport.did}: {score.score}
+            <a href="#" on:click={getScorerInfo(score.scorer)}>Scorer #{score.scorer}</a> - {score.passport.did}: {score.score}
           </li>
         {/each}
       </ul>
